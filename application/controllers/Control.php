@@ -132,8 +132,10 @@ class Control extends CI_Controller {
             // $tahun   =$baseEND->{'tahun'};
             $kdDinas   =$baseEND->{'kdDinas'};
 
+            // untuk dev sebaiknya password nye berbeda tiap tahun ne
             $q="select * from member where kdDinas='".$kdDinas."' and UPPER(nmMember)=UPPER('".$username."') and UPPER(password)=UPPER('".$password."') and kdApp='".$this->mbgs->app['kd']."'";
             $member=$this->qexec->_func($q);
+            
 			if(count($member)==0){
 				return $this->logout();
 			}
@@ -148,7 +150,7 @@ class Control extends CI_Controller {
                 'tahun'=>0,
                 'sistem'=>'renja'
             );
-            
+            // return print_r($sess);
             // $res=$this->mbgs->_getAllFile("/fs_sistem/session");
             // $this->mbgs->_removeFile($res,$this->mbgs->_getIpClient()."=");
             
@@ -156,7 +158,7 @@ class Control extends CI_Controller {
             // $this->mbgs->_expTxt($this->mbgs->_getIpClient()."=",json_encode($sess));
             // // sess
 
-            // return print_r($sess);
+            // return print_r($$portal);
             
             $this->sess->set_userdata($sess);
             $nama=$member[0]['kdMember'];
@@ -169,11 +171,13 @@ class Control extends CI_Controller {
         }
 
         $portal=$this->_keamanan(_getNKA("p-ssub",false));
+        // return print_r(array("kdMember"=>$this->sess->kdMember1,"kdJabatan"=>$this->sess->kdJabatan));
         if(!$portal['exec'] && $portal['msg']=="keyForm"){
             $resp=$this->addKeySistem(base64_encode(json_encode(array("kdMember"=>$this->sess->kdMember1,"kdJabatan"=>$this->sess->kdJabatan))));
             // return $this->mbgs->_log($resp);
             // return $this->logout();
         }
+        // return print_r($this->sess->kdMember1);
         $this->_['page']="dashboard";
         $this->_['html']=$this->mbgs->_html($this->_);
 		$this->load->view('index',$this->_);
@@ -192,7 +196,8 @@ class Control extends CI_Controller {
             }
         }
     }
-    public function renstra($thn){
+    public function renstra($thn){ 
+        // return print_r($this->sess->kdMember);
 		if($thn!=null && !empty($thn) && $thn!="null"){
 			$this->sess->tahun=$thn;
 		}
@@ -356,6 +361,7 @@ class Control extends CI_Controller {
         // $this->sess->set_userdata($session);
         //btas dell
 
+        // print_r($this->sess);
         $kdMember=$this->sess->kdMember1;
         if($kdMember==null) {
             return $this->mbgs->resF("sess");

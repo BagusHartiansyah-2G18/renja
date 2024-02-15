@@ -47,8 +47,7 @@ function _formData() {
                     bgHeader:"bg-info text-light",
                     attrHeader:`style="height: max-content;"`,
                     bgForm:"#fff; font-size:15px;",
-                    isi:
-                        _inpComboBox({
+                    isi:_inpComboBox({
                             judul:"Dinas",
                             id:"kdDinas",
                             color:"black",  
@@ -59,24 +58,21 @@ function _formData() {
                             attr:"font-size:15px;",
                             index:true
                         })
-                        +(
-                            _.dinas[_.ind].sub != undefined ?
-                            _inpSejajar({
-                                attrRow:"margin-top:10px;",
-                                attrCol:"",
-                                attrLabel:"color:black",
+                        +_inpSejajar({
+                            attrRow:"margin-top:10px;",
+                            attrCol:"",
+                            attrLabel:"color:black",
+                            judul:"Sub Kegiatan",
+                            isi:_inpDropdonwSelected({
                                 judul:"Sub Kegiatan",
-                                isi:_inpDropdonwSelected({
-                                    judul:"Sub Kegiatan",
-                                    id:"subc",
-                                    idJudul:"sub",
-                                    bg:"bg-warning fzMfc",
-                                    idData:"msData",
-                                    data:_.dinas[_.ind].sub,
-                                    bgSearch:"white; color:black !important;"
-                                })
-                            }):''
-                        )
+                                id:"subc",
+                                idJudul:"sub",
+                                bg:"bg-warning fzMfc",
+                                idData:"msData",
+                                data:_.dinas[_.ind].sub,
+                                bgSearch:"white; color:black !important;"
+                            })
+                        })
                         +_inpImageView({
                             attrRow:"margin-top:10px;",
                             id:"file",
@@ -116,7 +112,22 @@ function _changeSubOPD(v) {
     }
     return _responDt(null,find);
 }
- 
+function _perbaruiAkun() {
+    param={
+        username:$('#username').val(),
+        passOld:$('#passwordOld').val(),
+        passNew:$('#passwordNew').val()
+    }
+    _post('proses/perbaruiAkun',param).then(res=>{
+        res=JSON.parse(res);
+        if(res.exec){
+            // _modalHide('modal');
+            _redirect("control/logout");
+        }else{
+            return _toast({bg:'e', msg:res.msg});
+        }
+    });
+}
 function setTabel(){
     full=false;
     if (_.files.length>0 && Object.keys(_.files[0]).length>10) {
@@ -328,51 +339,54 @@ function splitVolume(text,ind,sebelum) {
     }
     return text;
 }
-function _selected(v) { 
-    var reader = new FileReader();
-    reader.onload = onReaderLoad;
-    reader.readAsText(v.files[0]); 
-}
-function onReaderLoad(event){
-    // console.log(JSON.parse(event.target.result));
-    _respon( JSON.parse(event.target.result));
-    // alert_data(obj.name, obj.family);
-    
+function _selected(v) {
+    _.ckErrorFile="";
+    _respon([]);
+    _readExcel(v).then(v=>{
+        if(v.exec){
+            // $('#modal').modal("hide");
+            _respon(v.data);
+        }else{
+            _toast({msg:"Error while parsing Excel file. See console output for the error stack trace"});
+        }
+    })
+    // $('#modal').modal("hide");
 }
 
 function _respon(data){
     if(data!=null){
         // console.log(data);
         _.files=data;
-    } 
-    // $('#tabelShow').html(`<pre>${JSON.stringify(_.files)}`);
+    }
+    // console.log(_.files);
+    $('#tabelShow').html(setTabel());
     _startTabel("dataTabel");
 }
 
 function uploadFile() {
-    // param={
-    //     kdDinas:_.kdDinas,
-    //     kdSub:_tamp1,
-    // }
-    // if (!_.ckErrorFile=="") {
-    //     return _modalEx1({
-    //         judul:"List Error".toUpperCase(),
-    //         icon:`<i class="mdi mdi-note-plus"></i>`,
-    //         cform:`text-light`,
-    //         bg:"bg-danger",
-    //         minWidth:"500px; font-size: medium;",
-    //         isi:_.ckErrorFile,
-    //         footer:_btn({
-    //                     color:"primary shadow",
-    //                     judul:"Close",
-    //                     attr:`style='float:right; padding:5px;font-size: medium;' onclick="_modalHide('modal')"`,
-    //                     class:"btn btn-secondary"
-    //                 })
-    //     });
-    // }
-    // if(_isNull(param.kdDinas))return _toast({bg:'e',msg:'Pilih Dinas !!!'});
-    // if(_isNull(param.kdSub))return _toast({bg:'e',msg:'Pilih Sub Kegiatan !!!'});
-    // if (_.files.length==0) return _toast({bg:'e',msg:'Pilih File Excell !!!'});
+    param={
+        kdDinas:_.kdDinas,
+        kdSub:_tamp1,
+    }
+    if (!_.ckErrorFile=="") {
+        return _modalEx1({
+            judul:"List Error".toUpperCase(),
+            icon:`<i class="mdi mdi-note-plus"></i>`,
+            cform:`text-light`,
+            bg:"bg-danger",
+            minWidth:"500px; font-size: medium;",
+            isi:_.ckErrorFile,
+            footer:_btn({
+                        color:"primary shadow",
+                        judul:"Close",
+                        attr:`style='float:right; padding:5px;font-size: medium;' onclick="_modalHide('modal')"`,
+                        class:"btn btn-secondary"
+                    })
+        });
+    }
+    if(_isNull(param.kdDinas))return _toast({bg:'e',msg:'Pilih Dinas !!!'});
+    if(_isNull(param.kdSub))return _toast({bg:'e',msg:'Pilih Sub Kegiatan !!!'});
+    if (_.files.length==0) return _toast({bg:'e',msg:'Pilih File Excell !!!'});
     _modalEx1({
         judul:"Konfirmasi".toUpperCase(),
         icon:`<i class="mdi mdi-note-plus"></i>`,
@@ -399,8 +413,8 @@ function uploadFile() {
                 attr:"font-size:15px;",
                 // index:true
             })
-            // +"<br>upload data "+(_.stMurni?" APBD MURNI":" APBD MURNI & PERUBAHAN ")+" ???",
-        ,footer:_btn({
+            +"<br>upload data "+(_.stMurni?" APBD MURNI":" APBD MURNI & PERUBAHAN ")+" ???",
+        footer:_btn({
                     color:"primary shadow",
                     judul:"Close",
                     attr:`style='float:right; padding:5px;font-size: medium;' onclick="_modalHide('modal')"`,
@@ -416,105 +430,101 @@ function uploadFile() {
 }
 function uploadFileed() {
     ktData=$('#ktData').val();
-    let th =_.tahun;
-    if(ktData!="murni"){
-        th+='-1';
-    }
-    let fquery = 'INSERT INTO psub (kdSub, kdKeg, kdDinas, nmSub, pagu,taSub) values '; 
-    
-    let fqueryJudul = `INSERT INTO ubjudul (
-        kdSUb, kdDinas,kdApbd6, kdSDana,
-        nama, taJudul,total,tahapan,kdJudul
-    ) values `; 
-    const djudul = _.files.perencanaan.judul;
-
-    const tblRincian =`INSERT INTO ubrincian (
-        kdRincian, kdJudul, kdSUb, kdDinas, uraian, total, jumlah1, satuan1,
-        volume, satuanVol, harga,taRincian,tahapan,idSsh
-    ) values `;
-    let fqueryJudulRincian = tblRincian, 
-        dtamJudul=[],catatTotal=0, kdRincian=0,kdJudul=0,hitRincian=0,no=0; 
-
-    const qexec = [];
-    hitRincian=1;
-    _.files.perencanaan.sub.forEach((v,i) => {
-        // if(i==0){
-            fquery+=`(
-                '${v.kode_sub_giat}','${v.kode_giat}','${v.kode_skpd}',
-                '${v.nama_sub_giat}','${v.pagu}','${th}'
-            ),`;
-            dtamJudul=v.rincian.map(({ id_subs_sub_bl }) => id_subs_sub_bl);
-            
-            
-            // id_sub_bl: 20198
-            // id_subs_sub_bl: 47470
-        
-            dtamJudul=[...new Set(dtamJudul)];
-            dtamJudul.forEach((v3,i3) => { 
-                kdRincian=1
-                frincian = v.rincian.filter(fv=>fv.id_subs_sub_bl==v3);
-                catatTotal = 0;
-                frincian.forEach((v2,i2) => {
-                    findJudul = djudul.findIndex(x=> x.id_subs_sub_bl == v2.id_subs_sub_bl); 
-                    kdJudul=i3+1; 
-                    const satvol = v2.koefisien_murni.split(" ");
-                    fqueryJudulRincian+=`(
-                        '${kdRincian}','${kdJudul}','${v.kode_sub_giat}','${v.kode_skpd}',
-                        '${v2.nama_standar_harga}','${v2.total_harga_murni}','${satvol[0]}','${satvol[1]}',
-                        '${satvol[0]}','${satvol[1].substring(0,1)}','${v2.harga_satuan_murni}','${th}',1,
-                        ''
-                    ),`;
-                    kdRincian++;
-                    catatTotal+=parseFloat(v2.total_harga_murni)*parseFloat(satvol[0]);
-                    if (i2==(frincian.length-1)) {
-                        fqueryJudul+=`(
-                            '${v.kode_sub_giat}','${v.kode_skpd}','${v2.kode_akun}',1,
-                            '${djudul[findJudul].subs_bl_teks}','${th}','${catatTotal}',1,
-                            '${i3+1}'
-                        ),`;
-                    }
-                    if (no>(hitRincian*400)) {
-                        qexec.push(fqueryJudulRincian.substring(0,fqueryJudulRincian.length-1));
-                        fqueryJudulRincian=tblRincian;
-                        hitRincian++;
-                    }
-                    no++;
-                    // fqueryJudulRincian+=``;
-                });
-            });
-        // }
-         
-    });
-
-    if(fqueryJudulRincian.length>10){
-        qexec.push(fqueryJudulRincian.substring(0,fqueryJudulRincian.length-1));
+    param={
+        kdDinas:_.kdDinas,
+        kdSub:_tamp1,
+        tahun:_.tahunAPBD,
+        tahunP:_.tahunAPBD+"-1",
+        kdSDana:1,
+        thMurni:4,
+        thPerubahan:1,
     }
     
-    qexec.push(fquery.substring(0,fquery.length-1));
-    qexec.push(fqueryJudul.substring(0,fqueryJudul.length-1));
-    
-    
-    // 5.01.0.00.0.00.01.0000
-    // $('#tabelShow').html(qexec[0]+"<br>"+qexec[1]);
-    // console.log(qexec);
-
-    // 197505072002121003
-    qexec.forEach(async element => {
-        param={  
-            tahun:th,
-            qexec:element
-        }
-        await _post('proses/saveImportExcellSIPD',param).then(res=>{
-            res=JSON.parse(res);
-            if(res.exec){
-                // _modalHide('modal');
-                // _respon([]);
-            }else{
-                return _toast({bg:'e', msg:res.msg});
+    var judulM=`INSERT INTO ubjudul(kdSUb, kdDinas, kdApbd6, kdSDana, nama, taJudul, total, tahapan, kdJudul,qdel) VALUES `,
+        rincianM=`INSERT INTO ubrincian(
+                    kdRincian, kdJudul, kdSub, kdDinas, uraian, total, 
+                    jumlah1, jumlah2, jumlah3, satuan1, satuan2, satuan3, 
+                    volume, satuanVol, harga,taRincian,tahapan,qdel
+                ) VALUES `,
+        qdel=``;
+    _.files.forEach((v,i) => {
+        if (i>0) { // hilangkan judulnya
+        // if (i==36) { // hilangkan judulnya
+            if (ktData=="murni" || ktData=="saduana") {
+                if (i==1) { // for q del saja
+                    qdel+=`delete from ubjudul where kdSUb=`+_valforQuery(param.kdSub)+` and kdDinas=`+_valforQuery(param.kdDinas)+` 
+                            and taJudul=`+_valforQuery(param.tahun)+` and tahapan=`+_valforQuery(param.thMurni)+`;
+                        delete from ubrincian where kdSUb=`+_valforQuery(param.kdSub)+` and kdDinas=`+_valforQuery(param.kdDinas)+` 
+                            and taRincian=`+_valforQuery(param.tahun)+` and tahapan=`+_valforQuery(param.thMurni)+`;`;
+                }
+                // console.log(v);
+                if(Number(v[9])>0){ // get qdelete  >0 artinya ada total belanjanya 
+                    // dan untuk tidak menambahkan data ini ke murni sebab data ini hanya ada pada APBDP
+                    
+                    if(v[0]=="judul"){
+                        judulM+=`(
+                                `+_valforQuery(param.kdSub)+`,`+_valforQuery(param.kdDinas)+`,`+_valforQuery(v[1])+`,
+                                `+_valforQuery(param.kdSDana)+`,`+_valforQuery(v[4])+`,`+_valforQuery(param.tahun)+`,
+                                `+_valforQuery(v[9])+`,`+_valforQuery(param.thMurni)+`,`+v[2]+`,`+_valforQuery("")+`
+                            ),`;
+                    }else{
+                        rincianM+=`(
+                                `+_valforQuery(v[3])+`,`+_valforQuery(v[2])+`,`+_valforQuery(param.kdSub)+`,
+                                `+_valforQuery(param.kdDinas)+`,`+_valforQuery(v[4])+`,`+_valforQuery(v[9])+`,
+                                `+_valforQuery(v.satvolx[0].vol)+`,`+_valforQuery(v.satvolx[1].vol)+`,`+_valforQuery(v.satvolx[2].vol)+`,
+                                `+_valforQuery(v.satvolx[0].sat)+`,`+_valforQuery(v.satvolx[1].sat)+`,`+_valforQuery(v.satvolx[2].sat)+`,
+                                `+_valforQuery(v.satvolx1.vol)+`,`+_valforQuery(v.satvolx1.sat)+`,`+_valforQuery(v[7])+`,
+                                `+_valforQuery(param.tahun)+`,`+_valforQuery(param.thMurni)+`,`+_valforQuery("")+`
+                            ),`;
+                    }
+                }
             }
-        });
+            if (ktData=="perubahan" || ktData=="saduana") {
+                if (i==1) { // for q del saja
+                    qdel+=`delete from ubjudul where kdSUb=`+_valforQuery(param.kdSub)+` and kdDinas=`+_valforQuery(param.kdDinas)+` 
+                            and taJudul=`+_valforQuery(param.tahunP)+` and tahapan=`+_valforQuery(param.thPerubahan)+`;
+                        delete from ubrincian where kdSUb=`+_valforQuery(param.kdSub)+` and kdDinas=`+_valforQuery(param.kdDinas)+` 
+                            and taRincian=`+_valforQuery(param.tahunP)+` and tahapan=`+_valforQuery(param.thPerubahan)+`;`;
+                }
+                fqdel=0;
+                if(Number(v[9])>0){ // get qdelete  >0 artinya ada total belanjanya
+                    fqdel=1;
+                }
+                if(v[0]=="judul"){
+                    judulM+=`(
+                            `+_valforQuery(param.kdSub)+`,`+_valforQuery(param.kdDinas)+`,`+_valforQuery(v[1])+`,
+                            `+_valforQuery(param.kdSDana)+`,`+_valforQuery(v[4])+`,`+_valforQuery(param.tahunP)+`,
+                            `+_valforQuery(v[14])+`,`+_valforQuery(param.thPerubahan)+`,`+v[2]+`,`+_valforQuery(fqdel)+`
+                        ),`;
+                }else{
+                    rincianM+=`(
+                            `+_valforQuery(v[3])+`,`+_valforQuery(v[2])+`,`+_valforQuery(param.kdSub)+`,
+                            `+_valforQuery(param.kdDinas)+`,`+_valforQuery(v[4])+`,`+_valforQuery(v[14])+`,
+                            `+_valforQuery(v.satvoly[0].vol)+`,`+_valforQuery(v.satvoly[1].vol)+`,`+_valforQuery(v.satvoly[2].vol)+`,
+                            `+_valforQuery(v.satvoly[0].sat)+`,`+_valforQuery(v.satvoly[1].sat)+`,`+_valforQuery(v.satvoly[2].sat)+`,
+                            `+_valforQuery(v.satvoly1.vol)+`,`+_valforQuery(v.satvoly1.sat)+`,`+_valforQuery(v[12])+`,
+                            `+_valforQuery(param.tahunP)+`,`+_valforQuery(param.thPerubahan)+`,`+_valforQuery(fqdel)+`
+                        ),`;
+                }
+            }
+        }
     });
- 
+    judulM  =judulM.substring(0,judulM.length-1);
+    rincianM=rincianM.substring(0,rincianM.length-1);
+    // return $('.modal-body').html();
+    param={qdel:qdel,query:judulM+";"+rincianM};
+    
+    // return console.log(param);   
+    // return console.log(param);
+    _post('proses/saveImportExcell',param).then(res=>{
+        res=JSON.parse(res);
+        if(res.exec){
+            _modalHide('modal');
+            _respon([]);
+        }else{
+            return _toast({bg:'e', msg:res.msg});
+        }
+    });
 }
 
 function _responDt(data,ind){

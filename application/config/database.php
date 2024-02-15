@@ -75,7 +75,7 @@ $query_builder = TRUE;
 // (ENVIRONMENT !== 'production')
 $db['default'] = array(
 	'dsn'	=> '',
-	// 'hostname' => 'localhost',
+	'hostname' => 'localhost',
 	// 'username' => 'root',
 	// 'password' => '',
 	// 'database' => 'bappeda',

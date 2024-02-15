@@ -44,6 +44,7 @@ class Proses extends CI_Controller {
         // return print_r($q);
         $member=$this->qexec->_func($q);
         if(count($member)==1){
+        // if(count($member)>1){
             // if($kondisi){//for login awal no sess
             //     if(substr($member[0]['kdJabatan'],5)<3){
             //         $pembahasan=$this->qexec->_func("SELECT tahun,noPembahasan,progres,finals,files FROM pembahasan ORDER by ins desc limit 1");
@@ -788,6 +789,26 @@ class Proses extends CI_Controller {
                 return $this->mbgs->resTrue($this->_);
             }
             return $this->mbgs->resFalse("Terjadi Kesalahan di penyimpanan sistem");
+        }else{
+            return $this->mbgs->resFalse("Terjadi Kesalahan sistem");
+        }
+    }
+    function saveImportExcellSIPD(){
+        if($this->sess->kdMember==null){
+            return $this->mbgs->resFalse("maaf, Pengguna tidak terdeteksi !!!");
+        }
+        // $portal=$this->_keamanan($_POST['code'],_getNKA("c-prod",false));
+        // if($portal['exec']){
+        $baseEND=json_decode((base64_decode($_POST['data'])));
+        
+        $tahun          =$baseEND->{'tahun'};
+        // return print_r($tahun);
+        $qexec          =$baseEND->{'qexec'};
+        // return print_r($baseEND);
+        
+        $check=$this->qexec->_multiProc($qexec);
+        if($check){
+            return $this->mbgs->resTrue($this->_); 
         }else{
             return $this->mbgs->resFalse("Terjadi Kesalahan sistem");
         }

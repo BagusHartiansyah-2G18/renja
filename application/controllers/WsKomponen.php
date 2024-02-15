@@ -368,6 +368,7 @@ class WsKomponen extends CI_Controller {
                 "valueName"=>"Tanpa FIlter"
             ]),$this->qexec->_func(_cbBidang(" where taBidang='".$this->tahun."'"))
         );
+        
         $this->_['dinas']=$this->qexec->_func(_cbDinas(" where kdDinas='".$this->kdDinas."'"));
         if($this->kdJabatan==2){
             $gadmin=$this->qexec->_func(_cbDinasForAG($this->kdMember1,""));
@@ -756,6 +757,14 @@ class WsKomponen extends CI_Controller {
         if(count($this->_['dinas'])>0){
             $this->_['dinas'][0]['sub']=$this->qexec->_func(_cbSub($this->_['dinas'][0]['value'],$this->tahun,""));
         }
+
+        $this->_['dinas']= array_merge(
+            array([
+                "value"=>"all",
+                "valueName"=>"Semua Dinas"
+            ]),
+            $this->_['dinas']
+        );
 
         $this->_['head'].=$this->mbgs->_getCss().$this->mbgs->_getJsMaster($page);
         $this->_['footer'].=$this->mbgs->_getJsChart();

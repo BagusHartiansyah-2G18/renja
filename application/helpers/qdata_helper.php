@@ -219,7 +219,7 @@
                     and k.taApbd1=j.taApbd2
             WHERE b.kdSub="'.$v['kdSub'].'" and a.tahapan="'.$v['tahapan'].'" and a.kdDinas="'.$v['kdDinas'].'" and 
                 a.taJudul="'.$v['tahun'].'" and a.status=1
-            GROUP BY b.kdSub,c.kdKeg,d.kdProg,a.kdDinas,e.kdApbd6,a.nama 
+            GROUP BY b.kdSub,c.kdKeg,d.kdProg,a.kdDinas,e.kdApbd6,a.kdJudul
             ORDER BY b.kdSub,c.kdKeg,d.kdProg
         ';
     }
